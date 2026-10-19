@@ -312,4 +312,115 @@ describe("TaskService", () => {
       ]);
     });
   });
+
+  describe("listOverdueTasks", () => {
+    it("throws when no tasks match the filter", () => {
+      const { service } = createService();
+
+      expect(() => service.listOverdueTasks()).toThrow(
+        "No tasks match this filter",
+      );
+
+      service.createTask({
+        title: "Future",
+        priority: PRIORITY.high,
+        dueDate: new Date("2026-12-01T00:00:00.000Z"),
+      });
+
+      expect(() => service.listOverdueTasks()).toThrow(
+        "No tasks match this filter",
+      );
+    });
+
+    it("returns only pending tasks whose due date is earlier than now", () => {
+      const { service } = createService();
+      const overdue = new Date("2026-10-01T00:00:00.000Z");
+
+      service.createTask({
+        title: "Future",
+        priority: PRIORITY.high,
+        dueDate: new Date("2026-12-01T00:00:00.000Z"),
+      });
+      service.createTask({
+        title: "Due now",
+        priority: PRIORITY.high,
+        dueDate: new Date(NOW.getTime()),
+      });
+      service.createTask({ title: "Undated", priority: PRIORITY.high });
+      service.createTask({
+        title: "Finished",
+        priority: PRIORITY.high,
+        dueDate: new Date("2026-09-01T00:00:00.000Z"),
+      });
+      service.completeTask("Finished");
+      service.createTask({
+        title: "Overdue",
+        priority: PRIORITY.medium,
+        dueDate: overdue,
+      });
+
+      expect(service.listOverdueTasks()).toEqual([
+        {
+          title: "Overdue",
+          priority: PRIORITY.medium,
+          status: STATUS.pending,
+          dueDate: overdue,
+        },
+      ]);
+    });
+
+    it("sorts overdue tasks by priority and then by earliest due date", () => {
+      const { service } = createService();
+      const september = new Date("2026-09-01T00:00:00.000Z");
+      const october = new Date("2026-10-01T00:00:00.000Z");
+
+      service.createTask({
+        title: "Low early",
+        priority: PRIORITY.low,
+        dueDate: september,
+      });
+      service.createTask({
+        title: "High later",
+        priority: PRIORITY.high,
+        dueDate: october,
+      });
+      service.createTask({
+        title: "High early",
+        priority: PRIORITY.high,
+        dueDate: september,
+      });
+      service.createTask({
+        title: "Medium early",
+        priority: PRIORITY.medium,
+        dueDate: september,
+      });
+
+      expect(service.listOverdueTasks()).toEqual([
+        {
+          title: "High early",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+          dueDate: september,
+        },
+        {
+          title: "High later",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+          dueDate: october,
+        },
+        {
+          title: "Medium early",
+          priority: PRIORITY.medium,
+          status: STATUS.pending,
+          dueDate: september,
+        },
+        {
+          title: "Low early",
+          priority: PRIORITY.low,
+          status: STATUS.pending,
+          dueDate: september,
+        },
+      ]);
+    });
+  });
 });

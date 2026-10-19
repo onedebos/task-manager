@@ -29,6 +29,17 @@ function compareByDueDate(left: Task, right: Task): number {
   return left.dueDate.getTime() - right.dueDate.getTime();
 }
 
+function compareOverdue(left: Task, right: Task): number {
+  const priorityOrder =
+    PRIORITIES.indexOf(left.priority) - PRIORITIES.indexOf(right.priority);
+
+  if (priorityOrder !== 0) {
+    return priorityOrder;
+  }
+
+  return compareByDueDate(left, right);
+}
+
 export class TaskService {
   constructor(
     private readonly repository: TaskRepository,
@@ -117,6 +128,19 @@ export class TaskService {
   }
 
   listOverdueTasks(): Task[] {
-    throw new Error("Not implemented: listOverdueTasks");
+    const now = this.clock.now().getTime();
+    const tasks = this.repository.findAll().filter((task) => {
+      return (
+        task.status === STATUS.pending &&
+        task.dueDate !== undefined &&
+        task.dueDate.getTime() < now
+      );
+    });
+
+    if (tasks.length === 0) {
+      throw new Error("No tasks match this filter");
+    }
+
+    return tasks.sort((left, right) => compareOverdue(left, right));
   }
 }
