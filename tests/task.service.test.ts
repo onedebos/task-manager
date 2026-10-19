@@ -28,7 +28,7 @@ describe("TaskService", () => {
   });
 
   describe("createTask", () => {
-    it("rejects a duplicate title after trimming, collapsing whitespace, and ignoring case", () => {
+    it("rejects a duplicate title after trimming spaces, collapsing repeated spaces, and ignoring case", () => {
       const { service, repository } = createService();
 
       service.createTask({ title: "Release Notes", priority: "HIGH" });
@@ -44,31 +44,38 @@ describe("TaskService", () => {
     });
 
     it.each([
-      "  Write Spec  ",
-      "write  spec",
-      "write\tspec",
-      "write\nspec",
-      "  write \t  spec \n",
-    ])("trims and collapses whitespace in %j", (title) => {
-      const { service } = createService();
+      ["  Write Spec  ", "write spec"],
+      ["write  spec", "write spec"],
+      ["write\tspec", "write\tspec"],
+      ["write\nspec", "write\nspec"],
+      ["\tWrite Spec", "\twrite spec"],
+      ["  write \t  spec \n", "write \t spec \n"],
+    ] as const)(
+      "normalizes whitespace in %j",
+      (title, expectedTitle) => {
+        const { service } = createService();
 
-      const task = service.createTask({ title, priority: "HIGH" });
+        const task = service.createTask({ title, priority: "HIGH" });
 
-      expect(task).toEqual({
-        title: "write spec",
-        priority: "HIGH",
-        status: "PENDING",
-      });
-    });
+        expect(task).toEqual({
+          title: expectedTitle,
+          priority: "HIGH",
+          status: "PENDING",
+        });
+      },
+    );
 
-    it.each(["", "   ", "\t", "\n"])("rejects an empty title: %j", (title) => {
-      const { service, repository } = createService();
+    it.each(["", "   ", "\t", "\n", "\t\n", " \t \n "])(
+      "rejects an empty title: %j",
+      (title) => {
+        const { service, repository } = createService();
 
-      expect(() => service.createTask({ title, priority: "HIGH" })).toThrow(
-        "Task title is required",
-      );
-      expect(repository.findAll()).toEqual([]);
-    });
+        expect(() => service.createTask({ title, priority: "HIGH" })).toThrow(
+          "Task title is required",
+        );
+        expect(repository.findAll()).toEqual([]);
+      },
+    );
 
     it("stores the title in lowercase", () => {
       const { service } = createService();
@@ -106,7 +113,14 @@ describe("TaskService", () => {
       },
     );
 
-    it.each(["2release", "  2release", "  2 release  "])(
+    it.each([
+      "2release",
+      "  2release",
+      "  2 release  ",
+      "\t2release",
+      "\n2release",
+      "\t 2release",
+    ])(
       "rejects a title that starts with a number: %j",
       (title) => {
         const { service, repository } = createService();

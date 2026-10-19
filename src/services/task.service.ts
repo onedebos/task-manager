@@ -20,11 +20,11 @@ export class TaskService {
   createTask(input: CreateTaskInput): Task {
     const title = normalizeTitle(input.title);
 
-    if (title === "") {
+    if (title.replace(/[\t\n\r ]/g, "") === "") {
       throw new Error("Task title is required");
     }
 
-    if (/^[0-9]/.test(title)) {
+    if (/^[0-9]/.test(title.replace(/^[\t\n\r ]+/, ""))) {
       throw new Error("Task title must not start with a number");
     }
 

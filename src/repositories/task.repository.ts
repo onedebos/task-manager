@@ -7,12 +7,17 @@ export interface TaskRepository {
 }
 
 /**
- * Trims surrounding whitespace, collapses internal whitespace to a single
- * space, and lowercases the title. The repository uses this as its lookup
- * key. The service uses it for the stored display title as well.
+ * Removes ordinary spaces from both ends, collapses repeated spaces to a
+ * single space, and lowercases the title. Tabs and newlines are kept.
+ * The repository uses this as its lookup key. The service uses it for the
+ * stored display title as well.
  */
 export function normalizeTitle(title: string): string {
-  return title.trim().replace(/\s+/g, " ").toLowerCase();
+  return title
+    .replace(/^ +/, "")
+    .replace(/ +$/, "")
+    .replace(/ {2,}/g, " ")
+    .toLowerCase();
 }
 
 function copyTask(task: Task): Task {
