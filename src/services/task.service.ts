@@ -1,15 +1,21 @@
 import type { Clock } from "../clock.js";
-import type {
-  CreateTaskInput,
-  Priority,
-  Task,
+import {
+  priority,
+  status,
+  type CreateTaskInput,
+  type Priority,
+  type Task,
 } from "../models/task.model.js";
 import {
   normalizeTitle,
   type TaskRepository,
 } from "../repositories/task.repository.js";
 
-const PRIORITIES: readonly Priority[] = ["HIGH", "MEDIUM", "LOW"];
+const PRIORITIES: readonly Priority[] = [
+  priority.high,
+  priority.medium,
+  priority.low,
+];
 
 export class TaskService {
   constructor(
@@ -43,7 +49,7 @@ export class TaskService {
     const task: Task = {
       title,
       priority: input.priority,
-      status: "PENDING",
+      status: status.pending,
     };
 
     if (input.dueDate !== undefined) {
@@ -55,7 +61,28 @@ export class TaskService {
   }
 
   completeTask(title: string): Task {
-    throw new Error("Not implemented: completeTask");
+    const existing = this.repository.findByTitle(title);
+
+    if (existing === undefined) {
+      throw new Error("Task not found");
+    }
+
+    if (existing.status === status.completed) {
+      throw new Error("Task is already completed");
+    }
+
+    const completed: Task = {
+      title: existing.title,
+      priority: existing.priority,
+      status: status.completed,
+    };
+
+    if (existing.dueDate !== undefined) {
+      completed.dueDate = new Date(existing.dueDate.getTime());
+    }
+
+    this.repository.save(completed);
+    return completed;
   }
 
   listPendingByPriority(priority: Priority): Task[] {

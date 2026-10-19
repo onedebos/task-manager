@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Task } from "../src/models/task.model.js";
+import { priority, status, type Task } from "../src/models/task.model.js";
 import { InMemoryTaskRepository } from "../src/repositories/task.repository.js";
 
 const DUE_DATE = new Date("2026-01-15T00:00:00.000Z");
@@ -7,8 +7,8 @@ const DUE_DATE = new Date("2026-01-15T00:00:00.000Z");
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     title: "Write spec",
-    priority: "HIGH",
-    status: "PENDING",
+    priority: priority.high,
+    status: status.pending,
     dueDate: new Date(DUE_DATE.getTime()),
     ...overrides,
   };
@@ -22,6 +22,16 @@ describe("InMemoryTaskRepository", () => {
     repository.save(task);
 
     expect(repository.findByTitle("Write spec")).toEqual(task);
+  });
+
+  it("returns undefined when the title does not exist", () => {
+    const repository = new InMemoryTaskRepository();
+
+    expect(repository.findByTitle("missing")).toBeUndefined();
+
+    repository.save(makeTask());
+
+    expect(repository.findByTitle("other task")).toBeUndefined();
   });
 
   it("looks up tasks by trimmed, case-insensitive title", () => {
@@ -39,7 +49,7 @@ describe("InMemoryTaskRepository", () => {
   it("lists every stored task", () => {
     const repository = new InMemoryTaskRepository();
     const first = makeTask({ title: "First" });
-    const second = makeTask({ title: "Second", priority: "LOW" });
+    const second = makeTask({ title: "Second", priority: priority.low });
 
     repository.save(first);
     repository.save(second);
@@ -66,8 +76,8 @@ describe("InMemoryTaskRepository", () => {
     }
 
     found.title = "Changed";
-    found.priority = "LOW";
-    found.status = "COMPLETED";
+    found.priority = priority.low;
+    found.status = status.completed;
     found.dueDate.setFullYear(1999);
 
     const listed = repository.findAll();
