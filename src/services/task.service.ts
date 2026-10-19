@@ -18,21 +18,25 @@ export class TaskService {
   ) {}
 
   createTask(input: CreateTaskInput): Task {
-    const title = normalizeTitle(input.title);
+    const lookupKey = normalizeTitle(input.title);
+    const title = input.title.replace(/^ +/, "").replace(/ +$/, "");
 
-    if (title.replace(/[\t\n\r ]/g, "") === "") {
+    if (lookupKey.replace(/[\t\n\r ]/g, "") === "") {
       throw new Error("Task title is required");
-    }
-
-    if (/^[0-9]/.test(title.replace(/^[\t\n\r ]+/, ""))) {
-      throw new Error("Task title must not start with a number");
     }
 
     if (!PRIORITIES.includes(input.priority)) {
       throw new Error("Priority must be HIGH, MEDIUM, or LOW");
     }
 
-    if (this.repository.findByTitle(title) !== undefined) {
+    if (
+      input.dueDate !== undefined &&
+      Number.isNaN(input.dueDate.getTime())
+    ) {
+      throw new Error("Due date is invalid");
+    }
+
+    if (this.repository.findByTitle(lookupKey) !== undefined) {
       throw new Error("Task title already exists");
     }
 

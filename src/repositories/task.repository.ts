@@ -9,8 +9,8 @@ export interface TaskRepository {
 /**
  * Removes ordinary spaces from both ends, collapses repeated spaces to a
  * single space, and lowercases the title. Tabs and newlines are kept.
- * The repository uses this as its lookup key. The service uses it for the
- * stored display title as well.
+ * The repository uses this as its lookup key. Display titles stay in the
+ * service.
  */
 export function normalizeTitle(title: string): string {
   return title

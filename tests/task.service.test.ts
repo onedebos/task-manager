@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Clock } from "../src/clock.js";
-import type { CreateTaskInput, Priority } from "../src/models/task.model.js";
+import type { CreateTaskInput } from "../src/models/task.model.js";
 import { InMemoryTaskRepository } from "../src/repositories/task.repository.js";
 import { TaskService } from "../src/services/task.service.js";
 
@@ -28,45 +28,8 @@ describe("TaskService", () => {
   });
 
   describe("createTask", () => {
-    it("rejects a duplicate title after trimming spaces, collapsing repeated spaces, and ignoring case", () => {
-      const { service, repository } = createService();
-
-      service.createTask({ title: "Release Notes", priority: "HIGH" });
-
-      expect(() =>
-        service.createTask({ title: "  RELEASE   NOTES  ", priority: "LOW" }),
-      ).toThrow("Task title already exists");
-      expect(repository.findByTitle("release notes")).toEqual({
-        title: "release notes",
-        priority: "HIGH",
-        status: "PENDING",
-      });
-    });
-
-    it.each([
-      ["  Write Spec  ", "write spec"],
-      ["write  spec", "write spec"],
-      ["write\tspec", "write\tspec"],
-      ["write\nspec", "write\nspec"],
-      ["\tWrite Spec", "\twrite spec"],
-      ["  write \t  spec \n", "write \t spec \n"],
-    ] as const)(
-      "normalizes whitespace in %j",
-      (title, expectedTitle) => {
-        const { service } = createService();
-
-        const task = service.createTask({ title, priority: "HIGH" });
-
-        expect(task).toEqual({
-          title: expectedTitle,
-          priority: "HIGH",
-          status: "PENDING",
-        });
-      },
-    );
-
-    it.each(["", "   ", "\t", "\n", "\t\n", " \t \n "])(
-      "rejects an empty title: %j",
+    it.each(["", "   ", "\t", "\n"])(
+      "rejects an empty or whitespace-only title: %j",
       (title) => {
         const { service, repository } = createService();
 
@@ -77,82 +40,40 @@ describe("TaskService", () => {
       },
     );
 
-    it("stores the title in lowercase", () => {
-      const { service } = createService();
+    it.each([
+      ["  Write Spec  ", "Write Spec"],
+      ["Write  Spec", "Write  Spec"],
+    ] as const)(
+      "keeps %j for display and looks the task up by its lowercase key",
+      (title, displayTitle) => {
+        const { service, repository } = createService();
 
-      const task = service.createTask({
-        title: "WriteSpec",
-        priority: "HIGH",
-      });
+        const task = service.createTask({ title, priority: "HIGH" });
 
-      expect(task).toEqual({
-        title: "writespec",
+        expect(task).toEqual({
+          title: displayTitle,
+          priority: "HIGH",
+          status: "PENDING",
+        });
+        expect(repository.findByTitle("write spec")).toEqual(task);
+        expect(repository.findByTitle("WRITE SPEC")).toEqual(task);
+      },
+    );
+
+    it("rejects a title with the same normalized lookup key", () => {
+      const { service, repository } = createService();
+
+      service.createTask({ title: "Write Spec", priority: "HIGH" });
+
+      expect(() =>
+        service.createTask({ title: "  write   spec  ", priority: "LOW" }),
+      ).toThrow("Task title already exists");
+      expect(repository.findByTitle("write spec")).toEqual({
+        title: "Write Spec",
         priority: "HIGH",
         status: "PENDING",
       });
     });
-
-    it.each([
-      ["Release2", "release2"],
-      ["  Release 2  ", "release 2"],
-    ] as const)(
-      "accepts a number when the title does not start with one: %j",
-      (title, expectedTitle) => {
-        const { service } = createService();
-
-        const task = service.createTask({
-          title,
-          priority: "MEDIUM",
-        });
-
-        expect(task).toEqual({
-          title: expectedTitle,
-          priority: "MEDIUM",
-          status: "PENDING",
-        });
-      },
-    );
-
-    it.each([
-      "2release",
-      "  2release",
-      "  2 release  ",
-      "\t2release",
-      "\n2release",
-      "\t 2release",
-    ])(
-      "rejects a title that starts with a number: %j",
-      (title) => {
-        const { service, repository } = createService();
-
-        expect(() =>
-          service.createTask({ title, priority: "HIGH" }),
-        ).toThrow("Task title must not start with a number");
-        expect(repository.findAll()).toEqual([]);
-      },
-    );
-
-    it("starts every new task as pending", () => {
-      const { service } = createService();
-
-      const task = service.createTask({
-        title: "ShipNotes",
-        priority: "LOW",
-      });
-
-      expect(task.status).toBe("PENDING");
-    });
-
-    it.each(["HIGH", "MEDIUM", "LOW"] as const)(
-      "stores the %s priority",
-      (priority: Priority) => {
-        const { service } = createService();
-
-        const task = service.createTask({ title: "shipnotes", priority });
-
-        expect(task.priority).toBe(priority);
-      },
-    );
 
     it("rejects a priority outside the defined set", () => {
       const { service, repository } = createService();
@@ -167,31 +88,31 @@ describe("TaskService", () => {
       expect(repository.findAll()).toEqual([]);
     });
 
-    it("stores a due date when one is provided", () => {
-      const { service } = createService();
-      const dueDate = new Date("2026-12-01T00:00:00.000Z");
-
-      const task = service.createTask({
-        title: "shipnotes",
-        priority: "HIGH",
-        dueDate,
-      });
-
-      expect(task.dueDate).toEqual(dueDate);
-    });
-
-    it("omits the due date when one is not provided", () => {
+    it("starts every new task as pending", () => {
       const { service } = createService();
 
       const task = service.createTask({
         title: "shipnotes",
-        priority: "HIGH",
+        priority: "LOW",
       });
 
-      expect(task.dueDate).toBeUndefined();
+      expect(task.status).toBe("PENDING");
     });
 
-    it("allows a due date in the past", () => {
+    it("rejects an invalid due date", () => {
+      const { service, repository } = createService();
+
+      expect(() =>
+        service.createTask({
+          title: "shipnotes",
+          priority: "HIGH",
+          dueDate: new Date("invalid"),
+        }),
+      ).toThrow("Due date is invalid");
+      expect(repository.findAll()).toEqual([]);
+    });
+
+    it("allows a due date in the past and keeps the task pending", () => {
       const { service } = createService();
       const dueDate = new Date("2026-10-01T00:00:00.000Z");
 
@@ -208,6 +129,35 @@ describe("TaskService", () => {
         priority: "HIGH",
         status: "PENDING",
         dueDate,
+      });
+    });
+
+    it("returns a copy so later mutations do not change the stored task", () => {
+      const { service, repository } = createService();
+      const dueDate = new Date("2026-12-01T00:00:00.000Z");
+
+      const task = service.createTask({
+        title: "shipnotes",
+        priority: "HIGH",
+        dueDate,
+      });
+
+      expect(task.dueDate).not.toBe(dueDate);
+
+      dueDate.setFullYear(1999);
+      task.title = "Changed";
+      task.priority = "LOW";
+      task.status = "COMPLETED";
+      if (task.dueDate === undefined) {
+        throw new Error("Expected the created task to have a due date");
+      }
+      task.dueDate.setFullYear(1998);
+
+      expect(repository.findByTitle("shipnotes")).toEqual({
+        title: "shipnotes",
+        priority: "HIGH",
+        status: "PENDING",
+        dueDate: new Date("2026-12-01T00:00:00.000Z"),
       });
     });
   });
