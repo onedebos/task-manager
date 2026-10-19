@@ -17,6 +17,18 @@ const PRIORITIES: readonly Priority[] = [
   PRIORITY.low,
 ];
 
+function compareByDueDate(left: Task, right: Task): number {
+  if (left.dueDate === undefined) {
+    return right.dueDate === undefined ? 0 : 1;
+  }
+
+  if (right.dueDate === undefined) {
+    return -1;
+  }
+
+  return left.dueDate.getTime() - right.dueDate.getTime();
+}
+
 export class TaskService {
   constructor(
     private readonly repository: TaskRepository,
@@ -86,7 +98,16 @@ export class TaskService {
   }
 
   listPendingByPriority(priority: Priority): Task[] {
-    throw new Error("Not implemented: listPendingByPriority");
+    if (!PRIORITIES.includes(priority)) {
+      throw new Error("Priority must be HIGH, MEDIUM, or LOW");
+    }
+
+    return this.repository
+      .findAll()
+      .filter(
+        (task) => task.priority === priority && task.status === STATUS.pending,
+      )
+      .sort((left, right) => compareByDueDate(left, right));
   }
 
   listOverdueTasks(): Task[] {

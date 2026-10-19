@@ -4,6 +4,7 @@ import {
   PRIORITY,
   STATUS,
   type CreateTaskInput,
+  type Priority,
 } from "../src/models/task.model.js";
 import { InMemoryTaskRepository } from "../src/repositories/task.repository.js";
 import { TaskService } from "../src/services/task.service.js";
@@ -227,6 +228,76 @@ describe("TaskService", () => {
         priority: PRIORITY.high,
         status: STATUS.completed,
       });
+    });
+  });
+
+  describe("listPendingByPriority", () => {
+    it("rejects a priority outside the defined set", () => {
+      const { service } = createService();
+
+      expect(() =>
+        service.listPendingByPriority("URGENT" as unknown as Priority),
+      ).toThrow("Priority must be HIGH, MEDIUM, or LOW");
+    });
+
+    it("returns only pending tasks of the requested priority", () => {
+      const { service } = createService();
+
+      expect(service.listPendingByPriority(PRIORITY.high)).toEqual([]);
+
+      service.createTask({ title: "Low task", priority: PRIORITY.low });
+      service.createTask({ title: "Done", priority: PRIORITY.high });
+      service.completeTask("Done");
+      service.createTask({ title: "Open", priority: PRIORITY.high });
+
+      expect(service.listPendingByPriority(PRIORITY.high)).toEqual([
+        {
+          title: "Open",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+        },
+      ]);
+    });
+
+    it("sorts pending tasks by earliest due date and places undated tasks last", () => {
+      const { service } = createService();
+      const sooner = new Date("2026-10-01T00:00:00.000Z");
+      const later = new Date("2026-12-01T00:00:00.000Z");
+
+      service.createTask({
+        title: "Later",
+        priority: PRIORITY.high,
+        dueDate: later,
+      });
+      service.createTask({
+        title: "Undated",
+        priority: PRIORITY.high,
+      });
+      service.createTask({
+        title: "Sooner",
+        priority: PRIORITY.high,
+        dueDate: sooner,
+      });
+
+      expect(service.listPendingByPriority(PRIORITY.high)).toEqual([
+        {
+          title: "Sooner",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+          dueDate: sooner,
+        },
+        {
+          title: "Later",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+          dueDate: later,
+        },
+        {
+          title: "Undated",
+          priority: PRIORITY.high,
+          status: STATUS.pending,
+        },
+      ]);
     });
   });
 });
