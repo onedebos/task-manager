@@ -1,7 +1,7 @@
 # Task Manager — Agent Instructions
 
 This repository is the TypeScript harness for a 90-minute collaborative coding interview.
-The four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and the interviewer has approved the plan.
+The four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and the candidate has approved the plan.
 
 ## Architecture principles
 
@@ -39,18 +39,18 @@ Repository lookup keys use the title normalization above: trim surrounding white
 
 For every interview requirement:
 
-1. Let the interviewer explain their proposed implementation first.
+1. Let the candidate explain their proposed implementation first.
 2. Review the approach and identify any gaps or assumptions.
 3. Ask questions where requirements are ambiguous.
 4. Propose a small implementation plan.
-5. Wait for approval before modifying code.
+5. Wait for the candidate's approval before modifying code.
 6. Write the tests for the agreed behaviour.
 7. Run the tests and confirm they fail for the expected reason.
 8. Implement only the approved functionality.
 9. Run the tests and TypeScript checks.
 10. Show the changes and explain how they satisfy the requirements.
 
-Do not implement multiple interview requirements at once unless the interviewer explicitly approves it.
+Do not implement multiple interview requirements at once unless the candidate explicitly approves it.
 
 The operations to implement, one at a time, are:
 
