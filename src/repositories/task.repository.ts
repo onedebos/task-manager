@@ -7,12 +7,12 @@ export interface TaskRepository {
 }
 
 /**
- * Storage key for a title. Trims surrounding whitespace and compares
- * case-insensitively. This is a lookup key only; uniqueness and display
- * formatting stay in the service.
+ * Trims surrounding whitespace, collapses internal whitespace to a single
+ * space, and lowercases the title. The repository uses this as its lookup
+ * key. The service uses it for the stored display title as well.
  */
-function normalizeTitle(title: string): string {
-  return title.trim().toLowerCase();
+export function normalizeTitle(title: string): string {
+  return title.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 function copyTask(task: Task): Task {

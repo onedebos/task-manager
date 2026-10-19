@@ -1,7 +1,7 @@
 # Task Manager — Agent Instructions
 
 This repository is the TypeScript harness for a 90-minute collaborative coding interview.
-The four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and the candidate has approved the plan.
+The four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and I have approved the plan.
 
 ## Architecture principles
 
