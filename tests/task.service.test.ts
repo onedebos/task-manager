@@ -240,10 +240,22 @@ describe("TaskService", () => {
       ).toThrow("Priority must be HIGH, MEDIUM, or LOW");
     });
 
-    it("returns only pending tasks of the requested priority", () => {
+    it("throws when no tasks match the filter", () => {
       const { service } = createService();
 
-      expect(service.listPendingByPriority(PRIORITY.high)).toEqual([]);
+      expect(() => service.listPendingByPriority(PRIORITY.high)).toThrow(
+        "No tasks match this filter",
+      );
+
+      service.createTask({ title: "Low task", priority: PRIORITY.low });
+
+      expect(() => service.listPendingByPriority(PRIORITY.high)).toThrow(
+        "No tasks match this filter",
+      );
+    });
+
+    it("returns only pending tasks of the requested priority", () => {
+      const { service } = createService();
 
       service.createTask({ title: "Low task", priority: PRIORITY.low });
       service.createTask({ title: "Done", priority: PRIORITY.high });

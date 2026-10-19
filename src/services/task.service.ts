@@ -102,12 +102,18 @@ export class TaskService {
       throw new Error("Priority must be HIGH, MEDIUM, or LOW");
     }
 
-    return this.repository
+    const tasks = this.repository
       .findAll()
       .filter(
         (task) => task.priority === priority && task.status === STATUS.pending,
       )
       .sort((left, right) => compareByDueDate(left, right));
+
+    if (tasks.length === 0) {
+      throw new Error("No tasks match this filter");
+    }
+
+    return tasks;
   }
 
   listOverdueTasks(): Task[] {
