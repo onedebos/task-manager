@@ -1,17 +1,17 @@
-export const priority = {
+export const PRIORITY = {
   high: "HIGH",
   medium: "MEDIUM",
   low: "LOW",
 } as const;
 
-export type Priority = (typeof priority)[keyof typeof priority];
+export type Priority = (typeof PRIORITY)[keyof typeof PRIORITY];
 
-export const status = {
+export const STATUS = {
   pending: "PENDING",
   completed: "COMPLETED",
 } as const;
 
-export type TaskStatus = (typeof status)[keyof typeof status];
+export type TaskStatus = (typeof STATUS)[keyof typeof STATUS];
 
 export interface Task {
   title: string;

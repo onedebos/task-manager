@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { priority, status, type Task } from "../src/models/task.model.js";
+import { PRIORITY, STATUS, type Task } from "../src/models/task.model.js";
 import { InMemoryTaskRepository } from "../src/repositories/task.repository.js";
 
 const DUE_DATE = new Date("2026-01-15T00:00:00.000Z");
@@ -7,8 +7,8 @@ const DUE_DATE = new Date("2026-01-15T00:00:00.000Z");
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     title: "Write spec",
-    priority: priority.high,
-    status: status.pending,
+    priority: PRIORITY.high,
+    status: STATUS.pending,
     dueDate: new Date(DUE_DATE.getTime()),
     ...overrides,
   };
@@ -49,7 +49,7 @@ describe("InMemoryTaskRepository", () => {
   it("lists every stored task", () => {
     const repository = new InMemoryTaskRepository();
     const first = makeTask({ title: "First" });
-    const second = makeTask({ title: "Second", priority: priority.low });
+    const second = makeTask({ title: "Second", priority: PRIORITY.low });
 
     repository.save(first);
     repository.save(second);
@@ -76,8 +76,8 @@ describe("InMemoryTaskRepository", () => {
     }
 
     found.title = "Changed";
-    found.priority = priority.low;
-    found.status = status.completed;
+    found.priority = PRIORITY.low;
+    found.status = STATUS.completed;
     found.dueDate.setFullYear(1999);
 
     const listed = repository.findAll();

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Clock } from "../src/clock.js";
 import {
-  priority,
-  status,
+  PRIORITY,
+  STATUS,
   type CreateTaskInput,
 } from "../src/models/task.model.js";
 import { InMemoryTaskRepository } from "../src/repositories/task.repository.js";
@@ -37,7 +37,7 @@ describe("TaskService", () => {
       (title) => {
         const { service, repository } = createService();
 
-        expect(() => service.createTask({ title, priority: priority.high })).toThrow(
+        expect(() => service.createTask({ title, priority: PRIORITY.high })).toThrow(
           "Task title is required",
         );
         expect(repository.findAll()).toEqual([]);
@@ -52,12 +52,12 @@ describe("TaskService", () => {
       (title, displayTitle) => {
         const { service, repository } = createService();
 
-        const task = service.createTask({ title, priority: priority.high });
+        const task = service.createTask({ title, priority: PRIORITY.high });
 
         expect(task).toEqual({
           title: displayTitle,
-          priority: priority.high,
-          status: status.pending,
+          priority: PRIORITY.high,
+          status: STATUS.pending,
         });
         expect(repository.findByTitle("write spec")).toEqual(task);
         expect(repository.findByTitle("WRITE SPEC")).toEqual(task);
@@ -67,15 +67,15 @@ describe("TaskService", () => {
     it("rejects a title with the same normalized lookup key", () => {
       const { service, repository } = createService();
 
-      service.createTask({ title: "Write Spec", priority: priority.high });
+      service.createTask({ title: "Write Spec", priority: PRIORITY.high });
 
       expect(() =>
-        service.createTask({ title: "  write   spec  ", priority: priority.low }),
+        service.createTask({ title: "  write   spec  ", priority: PRIORITY.low }),
       ).toThrow("Task title already exists");
       expect(repository.findByTitle("write spec")).toEqual({
         title: "Write Spec",
-        priority: priority.high,
-        status: status.pending,
+        priority: PRIORITY.high,
+        status: STATUS.pending,
       });
     });
 
@@ -97,10 +97,10 @@ describe("TaskService", () => {
 
       const task = service.createTask({
         title: "shipnotes",
-        priority: priority.low,
+        priority: PRIORITY.low,
       });
 
-      expect(task.status).toBe(status.pending);
+      expect(task.status).toBe(STATUS.pending);
     });
 
     it("rejects an invalid due date", () => {
@@ -109,7 +109,7 @@ describe("TaskService", () => {
       expect(() =>
         service.createTask({
           title: "shipnotes",
-          priority: priority.high,
+          priority: PRIORITY.high,
           dueDate: new Date("invalid"),
         }),
       ).toThrow("Due date is invalid");
@@ -124,14 +124,14 @@ describe("TaskService", () => {
 
       const task = service.createTask({
         title: "shipnotes",
-        priority: priority.high,
+        priority: PRIORITY.high,
         dueDate,
       });
 
       expect(task).toEqual({
         title: "shipnotes",
-        priority: priority.high,
-        status: status.pending,
+        priority: PRIORITY.high,
+        status: STATUS.pending,
         dueDate,
       });
     });
@@ -142,7 +142,7 @@ describe("TaskService", () => {
 
       const task = service.createTask({
         title: "shipnotes",
-        priority: priority.high,
+        priority: PRIORITY.high,
         dueDate,
       });
 
@@ -150,8 +150,8 @@ describe("TaskService", () => {
 
       dueDate.setFullYear(1999);
       task.title = "Changed";
-      task.priority = priority.low;
-      task.status = status.completed;
+      task.priority = PRIORITY.low;
+      task.status = STATUS.completed;
       if (task.dueDate === undefined) {
         throw new Error("Expected the created task to have a due date");
       }
@@ -159,8 +159,8 @@ describe("TaskService", () => {
 
       expect(repository.findByTitle("shipnotes")).toEqual({
         title: "shipnotes",
-        priority: priority.high,
-        status: status.pending,
+        priority: PRIORITY.high,
+        status: STATUS.pending,
         dueDate: new Date("2026-12-01T00:00:00.000Z"),
       });
     });
@@ -183,7 +183,7 @@ describe("TaskService", () => {
 
       service.createTask({
         title: "Write Spec",
-        priority: priority.high,
+        priority: PRIORITY.high,
         dueDate,
       });
 
@@ -191,8 +191,8 @@ describe("TaskService", () => {
 
       expect(completed).toEqual({
         title: "Write Spec",
-        priority: priority.high,
-        status: status.completed,
+        priority: PRIORITY.high,
+        status: STATUS.completed,
         dueDate,
       });
       expect(repository.findByTitle("Write Spec")).toEqual(completed);
@@ -201,14 +201,14 @@ describe("TaskService", () => {
     it("finds the task by its normalized lookup key", () => {
       const { service, repository } = createService();
 
-      service.createTask({ title: "Write Spec", priority: priority.medium });
+      service.createTask({ title: "Write Spec", priority: PRIORITY.medium });
 
       const completed = service.completeTask("  WRITE SPEC  ");
 
       expect(completed).toEqual({
         title: "Write Spec",
-        priority: priority.medium,
-        status: status.completed,
+        priority: PRIORITY.medium,
+        status: STATUS.completed,
       });
       expect(repository.findByTitle("write spec")).toEqual(completed);
     });
@@ -216,7 +216,7 @@ describe("TaskService", () => {
     it("rejects completing a task that is already completed", () => {
       const { service, repository } = createService();
 
-      service.createTask({ title: "Write Spec", priority: priority.high });
+      service.createTask({ title: "Write Spec", priority: PRIORITY.high });
       service.completeTask("Write Spec");
 
       expect(() => service.completeTask("write spec")).toThrow(
@@ -224,8 +224,8 @@ describe("TaskService", () => {
       );
       expect(repository.findByTitle("write spec")).toEqual({
         title: "Write Spec",
-        priority: priority.high,
-        status: status.completed,
+        priority: PRIORITY.high,
+        status: STATUS.completed,
       });
     });
   });

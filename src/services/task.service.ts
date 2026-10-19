@@ -1,7 +1,7 @@
 import type { Clock } from "../clock.js";
 import {
-  priority,
-  status,
+  PRIORITY,
+  STATUS,
   type CreateTaskInput,
   type Priority,
   type Task,
@@ -12,9 +12,9 @@ import {
 } from "../repositories/task.repository.js";
 
 const PRIORITIES: readonly Priority[] = [
-  priority.high,
-  priority.medium,
-  priority.low,
+  PRIORITY.high,
+  PRIORITY.medium,
+  PRIORITY.low,
 ];
 
 export class TaskService {
@@ -49,7 +49,7 @@ export class TaskService {
     const task: Task = {
       title,
       priority: input.priority,
-      status: status.pending,
+      status: STATUS.pending,
     };
 
     if (input.dueDate !== undefined) {
@@ -67,14 +67,14 @@ export class TaskService {
       throw new Error("Task not found");
     }
 
-    if (existing.status === status.completed) {
+    if (existing.status === STATUS.completed) {
       throw new Error("Task is already completed");
     }
 
     const completed: Task = {
       title: existing.title,
       priority: existing.priority,
-      status: status.completed,
+      status: STATUS.completed,
     };
 
     if (existing.dueDate !== undefined) {
