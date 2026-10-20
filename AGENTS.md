@@ -1,7 +1,7 @@
 # Task Manager — Agent Instructions
 
 This repository is the TypeScript harness for a 90-minute collaborative coding interview.
-The four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and the candidate has approved the plan.
+Read [REQUIREMENTS.md](./REQUIREMENTS.md) first. It summarizes the supplied Multiverse candidate brief and is the source of truth for stated requirements. Distinguish explicit requirements from local implementation assumptions; do not treat the assumptions below as part of the brief.\n\nThe four Task Manager operations are intentionally unimplemented. Do not fill them in until the workflow below has been followed and the candidate has approved the plan.
 
 ## Architecture principles
 
@@ -18,7 +18,7 @@ The repository stores tasks in a private `Map` keyed by normalized title. It mus
 
 ## Business decisions and assumptions
 
-These decisions are recorded so they are easy to change if the interviewers clarify the requirements. They are not implemented in `TaskService` yet.
+These are local implementation assumptions, NOT requirements stated in the candidate brief. If they conflict with REQUIREMENTS.md or the interviewer's clarifications, follow the brief and clarify before proceeding. They are recorded so they are easy to change if the interviewers clarify the requirements. They are not implemented in `TaskService` yet.
 
 - Titles are required and cannot be empty or whitespace-only.
 - Titles must be unique, using case-insensitive comparison.
